@@ -8,7 +8,7 @@ namespace WT_Lab.API.Data
         public AppDbContext(DbContextOptions<AppDbContext> options) : base(options)
         {
         }
-        public DbSet<Asset> Asset { get; set; } = default!;
-        public DbSet<Category> Category { get; set; } = default!;
+        public DbSet<Asset> Asset { get; set; }
+        public DbSet<Category> Category { get; set; }
     }
 }
