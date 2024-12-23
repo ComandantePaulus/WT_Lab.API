@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using System.Data;
 using WT_Lab.API.Data;
 using WT_Lab.Domain;
+using WT_Lab.Models;
 
 namespace WT_Lab.API.Controllers
 {
@@ -17,10 +18,18 @@ namespace WT_Lab.API.Controllers
             _context = context;
         }
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Category>>> GetCategories()
+        public async Task<ActionResult<ResponseData<IEnumerable<Category>>>> GetCategories()
         {
-            return await _context.Category.ToListAsync();
+            var response = new ResponseData<IEnumerable<Category>>
+            {
+                Data = await _context.Category.ToListAsync()
+            };
+            return response;
         }
+        //public async Task<ActionResult<IEnumerable<Category>>> GetCategories()
+        //{
+        //    return await _context.Category.ToListAsync();
+        //}
         [HttpGet("{id}")]
         public async Task<ActionResult<Category>> GetCategory(int id)
         {
