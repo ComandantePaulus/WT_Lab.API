@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using System.Data;
 using WT_Lab.API.Data;
 using WT_Lab.Domain;
+using WT_Lab.Models;
 
 namespace WT_Lab.API.Controllers
 {
@@ -16,11 +17,47 @@ namespace WT_Lab.API.Controllers
         {
             _context = context;
         }
+
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Asset>>> GetAssets()
+        public async Task<ActionResult<ResponseData<AssetListModel<Asset>>>> GetAssets(string? category,int pageNo = 1,int pageSize = 3)
         {
-           return await _context.Asset.ToListAsync();
+            // Создать объект результата
+            var result = new ResponseData<AssetListModel<Asset>>();
+            // Фильтрация по категории загрузка данных категории
+            var data = _context.Asset
+            .Include(d => d.Category)
+            .Where(d => String.IsNullOrEmpty(category)
+            || d.Category.NormalizedName.Equals(category));
+            // Подсчет общего количества страниц
+            int totalPages = (int)Math.Ceiling(data.Count() / (double)pageSize);
+            if (pageNo > totalPages)
+                pageNo = totalPages;
+            // Создание объекта ProductListModel с нужной страницей данных
+            var listData = new AssetListModel<Asset>()
+            {
+                Items = await data
+            .Skip((pageNo - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync(),
+                CurrentPage = pageNo,
+                TotalPages = totalPages
+            };
+            // поместить данные в объект результата
+            result.Data = listData;
+            // Если список пустой
+            if (data.Count() == 0)
+            {
+                result.Success = false;
+                result.ErrorMessage = "Нет объектов в выбранной категории";
+            }
+            return result;
         }
+
+        //[HttpGet]
+        //public async Task<ActionResult<IEnumerable<Asset>>> GetAssets()
+        //{
+        //   return await _context.Asset.ToListAsync();
+        //}
         [HttpGet("{id}")]
         public async Task<ActionResult<Asset>> GetAsset(int id)
         {
