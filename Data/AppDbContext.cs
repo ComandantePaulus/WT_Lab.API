@@ -8,6 +8,12 @@ namespace WT_Lab.API.Data
         public AppDbContext(DbContextOptions<AppDbContext> options) : base(options)
         {
         }
+//        protected override void OnConfiguring(DbContextOptionsBuilder
+//optionsBuilder)
+//        {
+//            base.OnConfiguring(optionsBuilder);
+//            optionsBuilder.UseSqlServer("");
+//        }
         public DbSet<Asset> Asset { get; set; }
         public DbSet<Category> Category { get; set; }
     }
