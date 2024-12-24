@@ -13,11 +13,44 @@ namespace WT_Lab.API.Controllers
     public class AssetsController : ControllerBase
     {
         private readonly AppDbContext _context;
-        public AssetsController(AppDbContext context)
+        private readonly IWebHostEnvironment _env;
+        public AssetsController(AppDbContext context, IWebHostEnvironment env)
         {
             _context = context;
+            _env = env;
         }
-
+        [HttpPost("{id}")]
+        public async Task<IActionResult> SaveImage(int id, IFormFile image)
+        {
+            // Найти объект по Id
+            var asset = await _context.Asset.FindAsync(id);
+            if (asset == null)
+            {
+                return NotFound();
+            }
+            // Путь к папке wwwroot/Images
+            var imagesPath = Path.Combine(_env.WebRootPath, "Images");
+            // получить случайное имя файла
+            var randomName = Path.GetRandomFileName();
+            // получить расширение в исходном файле
+            var extension = Path.GetExtension(image.FileName);
+            // задать в новом имени расширение как в исходном файле
+            var fileName = Path.ChangeExtension(randomName, extension);
+            // полный путь к файлу
+            var filePath = Path.Combine(imagesPath, fileName);
+            // создать файл и открыть поток для записи
+            using var stream = System.IO.File.OpenWrite(filePath);
+            // скопировать файл в поток
+            await image.CopyToAsync(stream);
+            // получить Url хоста
+            var host = "https://" + Request.Host;
+            // Url файла изображения
+            var url = $"{host}/Images/{fileName}";
+            // Сохранить url файла в объекте
+            asset.Photo = url;
+            await _context.SaveChangesAsync();
+            return Ok();
+        }
         [HttpGet]
         public async Task<ActionResult<ResponseData<AssetListModel<Asset>>>> GetAssets(string? category,int pageNo = 1,int pageSize = 3)
         {
